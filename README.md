@@ -19,7 +19,7 @@ User is "admin"
 
 ### Generate Coverage Reports:
 After running the tests, JaCoCo will generate coverage reports automatically. You can find the reports in the target/site/jacoco directory of Maven project.
-![img_2.png](img_2.png)
+![report.png](report.png)
 ### Viewing Reports:
 Open the generated HTML report (index.html) in a web browser to view the code coverage summary and detailed coverage information for each class.
 
