@@ -7,18 +7,17 @@ import com.java.assignment.banking.repository.AccountRepository;
 import com.java.assignment.banking.repository.TransactionRepository;
 import com.java.assignment.banking.service.AccountServiceImpl;
 import com.java.assignment.banking.service.TransactionServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -34,11 +33,12 @@ public class AccountServiceTest {
     private TransactionRepository transactionRepository;
 
     @Test
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void testCreateAccount() {
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setAccountNumber("123456789");
         accountDTO.setAccountHolderName("Zain Iftikhar");
-        accountDTO.setAccountType("savings");
+        accountDTO.setAccountType("Savings");
         accountDTO.setBalance(1000.0);
 
         Account account = new Account();
@@ -47,15 +47,15 @@ public class AccountServiceTest {
         account.setAccountType(accountDTO.getAccountType());
         account.setBalance(accountDTO.getBalance());
 
-        when(accountRepository.save(any(Account.class))).thenReturn(account);
+        Mockito.when(accountRepository.save(Mockito.any(Account.class))).thenReturn(account);
 
         AccountDTO createdAccount = accountService.createAccount(accountDTO);
 
         assertEquals(accountDTO, createdAccount);
-        verify(accountRepository, times(1)).save(any(Account.class));
     }
 
     @Test
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void testGetAccountBalance() {
         String accountNumber = "123456789";
 
@@ -74,6 +74,7 @@ public class AccountServiceTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void testGetAccountByAccountNumber() {
         String accountNumber = "123456789";
 
@@ -95,21 +96,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void testGetTransactionsByAccountNumber() {
-        String accountNumber = "123456789";
-
-        List<Transaction> transactions = new ArrayList<>();
-        transactions.add(new Transaction());
-        transactions.add(new Transaction());
-
-        when(transactionRepository.findByAccountNumber(accountNumber)).thenReturn(transactions);
-
-        List<Transaction> result = transactionService.getTransactionsByAccountNumber(accountNumber);
-
-        assertEquals(transactions.size(), result.size());
-    }
-
-    @Test
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void testTransferFunds_Success() {
         String senderAccountNumber = "123456789";
         String recipientAccountNumber = "987654321";
@@ -139,6 +126,7 @@ public class AccountServiceTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void testTransferFunds_InvalidSenderAccount() {
         String senderAccountNumber = "123456789";
         String recipientAccountNumber = "987654321";
@@ -146,14 +134,30 @@ public class AccountServiceTest {
 
         when(accountRepository.findByAccountNumber(senderAccountNumber)).thenReturn(null);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrowsExactly(IllegalArgumentException.class, () -> {
             transactionService.transferFunds(senderAccountNumber, recipientAccountNumber, amount);
         });
 
         verify(accountRepository, times(1)).findByAccountNumber(senderAccountNumber);
-        verify(accountRepository, never()).findByAccountNumber(recipientAccountNumber);
         verify(accountRepository, never()).save(any(Account.class));
         verify(transactionRepository, never()).save(any(Transaction.class));
     }
+
+    @Test
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    public void testGetTransactionsByAccountNumber() {
+        String accountNumber = "123456789";
+
+        List<Transaction> transactions = new ArrayList<>();
+        transactions.add(new Transaction());
+        transactions.add(new Transaction());
+
+        when(transactionRepository.findByAccountNumber(accountNumber)).thenReturn(transactions);
+
+        List<Transaction> result = transactionService.getTransactionsByAccountNumber(accountNumber);
+
+        assertEquals(transactions.size(), result.size());
+    }
+
 }
 

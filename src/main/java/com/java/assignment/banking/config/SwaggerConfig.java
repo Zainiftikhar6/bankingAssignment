@@ -22,7 +22,13 @@ public class SwaggerConfig {
                 .externalDocs(new ExternalDocumentation()
                         .description(
                                 "Banking Assignment")
-                        .url("https://allianz.com.my"));
+                        .url("zainiftikhar666@gmail.com"));
+    }
+
+    @Bean
+    public OperationCustomizer customize() {
+        return (operation, handlerMethod) -> operation.addParametersItem(
+                new Parameter().in("header").required(true).description("user").name("user").schema(new StringSchema()));
     }
 }
 
